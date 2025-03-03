@@ -45,14 +45,24 @@ jobs:
       
       - name: Load version
         run: |
-          source $GITHUB_WORKSPACE/bot_config.yml
-          echo "VER_MAJOR=$VER_MAJOR" >> $GITHUB_ENV
-          echo "VER_MINOR=$VER_MINOR" >> $GITHUB_ENV
-          echo "PATCH=$PATCH" >> $GITHUB_ENV
-          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
-          echo "SCHEDULE_NAME=$SCHEDULE_NAME" >> $GITHUB_ENV
-          echo "SCHEDULE_SCRIPT=$SCHEDULE_SCRIPT" >> $GITHUB_ENV
-          echo "SCHEDULE_PARAMETERS=$SCHEDULE_PARAMETERS" >> $GITHUB_ENV
+          # Parse YAML and export variables
+          while IFS=':' read -r key value; do
+            if [[ $key == *"VER_MAJOR"* ]]; then
+              echo "VER_MAJOR=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            elif [[ $key == *"VER_MINOR"* ]]; then
+              echo "VER_MINOR=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            elif [[ $key == *"PATCH"* ]]; then
+              echo "PATCH=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            elif [[ $key == *"DESCRIPTION"* ]]; then
+              echo "DESCRIPTION=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            elif [[ $key == *"SCHEDULE_NAME"* ]]; then
+              echo "SCHEDULE_NAME=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            elif [[ $key == *"SCHEDULE_SCRIPT"* ]]; then
+              echo "SCHEDULE_SCRIPT=$(echo $value | tr -d '"')" >> $GITHUB_ENV
+            elif [[ $key == *"SCHEDULE_PARAMETERS"* ]]; then
+              echo "SCHEDULE_PARAMETERS=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
+            fi
+          done < bot_config.yml
           
       - name: Check and create release
         run: |
