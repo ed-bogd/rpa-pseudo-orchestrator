@@ -120,9 +120,9 @@ jobs:
           . $GITHUB_WORKSPACE/schedule.sh
           create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
         env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
-          SCHEDULE_SCRIPT: $SCHEDULE_SCRIPT 
-          SCHEDULE_PARAMETERS: $SCHEDULE_PARAMETERS 
+          SCHEDULE_NAME: ${{ env.SCHEDULE_NAME }}
+          SCHEDULE_SCRIPT: ${{ env.SCHEDULE_SCRIPT }}
+          SCHEDULE_PARAMETERS: ${{ env.SCHEDULE_PARAMETERS }}
 
   delete_schedule:
     needs: create_schedule
