@@ -147,7 +147,7 @@ jobs:
           echo "Approved"
 
   delete_schedule:
-    needs: create_schedule
+    needs: approveSchedule
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
@@ -164,7 +164,7 @@ jobs:
           SCHEDULE_NAME: $SCHEDULE_NAME 
 
   run_schedule:
-    needs: create_schedule
+    needs: approveSchedule
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
@@ -181,7 +181,7 @@ jobs:
           SCHEDULE_NAME: $SCHEDULE_NAME 
 
   enable_schedule:
-    needs: create_schedule
+    needs: approveSchedule
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
@@ -198,7 +198,7 @@ jobs:
           SCHEDULE_NAME: $SCHEDULE_NAME 
 
   disable_schedule:
-    needs: create_schedule
+    needs: approveSchedule
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
@@ -215,7 +215,7 @@ jobs:
           SCHEDULE_NAME: $SCHEDULE_NAME 
 
   end_schedule:
-    needs: create_schedule
+    needs: approveSchedule
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
