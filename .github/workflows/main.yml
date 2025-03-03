@@ -40,6 +40,10 @@ jobs:
     needs: approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
+    outputs:
+      SCHEDULE_NAME: ${{ steps.set_vars.outputs.SCHEDULE_NAME }}
+      SCHEDULE_SCRIPT: ${{ steps.set_vars.outputs.SCHEDULE_SCRIPT }}
+      SCHEDULE_PARAMETERS: ${{ steps.set_vars.outputs.SCHEDULE_PARAMETERS }}
     permissions:
       contents: write
       issues: write
@@ -85,6 +89,13 @@ jobs:
           PATCH: ${{ env.PATCH }}
           DESCRIPTION: ${{ env.DESCRIPTION }}
 
+      - name: Set outputs
+        id: set_vars
+        run: |
+          echo "SCHEDULE_NAME=$SCHEDULE_NAME" >> $GITHUB_OUTPUT
+          echo "SCHEDULE_SCRIPT=$SCHEDULE_SCRIPT" >> $GITHUB_OUTPUT
+          echo "SCHEDULE_PARAMETERS=$SCHEDULE_PARAMETERS" >> $GITHUB_OUTPUT
+
   dev_run:
     needs: release
     runs-on: self-hosted
@@ -120,9 +131,20 @@ jobs:
           . $GITHUB_WORKSPACE/schedule.sh
           create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
         env:
-          SCHEDULE_NAME: ${{ env.SCHEDULE_NAME }}
-          SCHEDULE_SCRIPT: ${{ env.SCHEDULE_SCRIPT }}
-          SCHEDULE_PARAMETERS: ${{ env.SCHEDULE_PARAMETERS }}
+          SCHEDULE_NAME: ${{ needs.release.outputs.SCHEDULE_NAME }}
+          SCHEDULE_SCRIPT: ${{ needs.release.outputs.SCHEDULE_SCRIPT }}
+          SCHEDULE_PARAMETERS: ${{ needs.release.outputs.SCHEDULE_PARAMETERS }}
+
+  ## Manual Approval Job
+  approveSchedule:
+    needs: create_schedule
+    environment:
+      name: approvers
+    runs-on: ubuntu-latest
+    steps:
+    - name: manual approve
+      run: |
+          echo "Approved"
 
   delete_schedule:
     needs: create_schedule
