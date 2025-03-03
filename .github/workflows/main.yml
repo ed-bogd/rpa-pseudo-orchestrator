@@ -40,6 +40,10 @@ jobs:
     needs: approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       
@@ -63,19 +67,23 @@ jobs:
               echo "SCHEDULE_PARAMETERS=$(echo $value | tr -d '"' | tr -d ' ')" >> $GITHUB_ENV
             fi
           done < bot_config.yml
-          
+         
       - name: Check and create release
         run: |
           echo "Checking release..."
           if ! gh release view "v$VER_MAJOR.$VER_MINOR.$PATCH" &>/dev/null; then
             echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH not found"
             echo "Creating..."
-            gh release create "v$VER_MAJOR.$VER_MINOR.$PATCH" --notes "$DESCRIPTION"
-            exit 0
+            gh release create "v$VER_MAJOR.$VER_MINOR.$PATCH" --notes "$DESCRIPTION" --generate-notes
           fi
           echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH already created."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Make sure the variables are clean without comments
+          VER_MAJOR: ${{ env.VER_MAJOR }}
+          VER_MINOR: ${{ env.VER_MINOR }}
+          PATCH: ${{ env.PATCH }}
+          DESCRIPTION: ${{ env.DESCRIPTION }}
 
   dev_run:
     needs: release
