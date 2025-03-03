@@ -1,0 +1,199 @@
+# .github/workflows/main.yml
+name: Orchestrator
+
+on:
+  workflow_dispatch: # Equivalent to GitLab's web trigger
+  repository_dispatch: # Equivalent to GitLab's external trigger
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install flake8
+        run: pip install flake8
+        
+      - name: Run flake8
+        run: |
+          echo "=== Running flake8 job === "
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --max-complexity=10 --max-line-length=170 --statistics
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Load version
+        run: |
+          source ../../bot_config.yml
+          echo "VER_MAJOR=$VER_MAJOR" >> $GITHUB_ENV
+          echo "VER_MINOR=$VER_MINOR" >> $GITHUB_ENV
+          echo "PATCH=$PATCH" >> $GITHUB_ENV
+          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+          echo "SCHEDULE_NAME=$SCHEDULE_NAME" >> $GITHUB_ENV
+          echo "SCHEDULE_SCRIPT=$SCHEDULE_SCRIPT" >> $GITHUB_ENV
+          echo "SCHEDULE_PARAMETERS=$SCHEDULE_PARAMETERS" >> $GITHUB_ENV
+          
+      - name: Check and create release
+        run: |
+          echo "Checking release..."
+          if ! gh release view "v$VER_MAJOR.$VER_MINOR.$PATCH" &>/dev/null; then
+            echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH not found"
+            echo "Creating..."
+            gh release create "v$VER_MAJOR.$VER_MINOR.$PATCH" --notes "$DESCRIPTION"
+            exit 0
+          fi
+          echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH already created."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dev_run:
+    needs: release
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run in dev mode
+        run: |
+          cd bot
+          .\rcc.exe run --dev
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: robot-output
+          path: robot/output/
+          if-no-files-found: warn
+
+  create_schedule:
+    needs: dev_run
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create schedule
+        shell: bash
+        run: |
+          echo "Creating a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+          SCHEDULE_SCRIPT: $SCHEDULE_SCRIPT 
+          SCHEDULE_PARAMETERS: $SCHEDULE_PARAMETERS 
+
+  delete_schedule:
+    needs: create_schedule
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Delete schedule
+        shell: bash
+        run: |
+          echo "Deleting a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          delete_scheduled_task "$SCHEDULE_NAME"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+
+  run_schedule:
+    needs: create_schedule
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run schedule
+        shell: bash
+        run: |
+          echo "Running a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          run_scheduled_task "$SCHEDULE_NAME"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+
+  enable_schedule:
+    needs: create_schedule
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Enable schedule
+        shell: bash
+        run: |
+          echo "Enabling a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          enable_scheduled_task "$SCHEDULE_NAME"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+
+  disable_schedule:
+    needs: create_schedule
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Disable schedule
+        shell: bash
+        run: |
+          echo "Disabling a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          disable_scheduled_task "$SCHEDULE_NAME"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+
+  end_schedule:
+    needs: create_schedule
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Stop schedule
+        shell: bash
+        run: |
+          echo "Stopping a schedule..."
+          chmod +x $GITHUB_WORKSPACE/schedule.sh
+          . $GITHUB_WORKSPACE/schedule.sh
+          # Note: Linux doesn't need explicit task ending
+          disable_scheduled_task "$SCHEDULE_NAME"
+        env:
+          SCHEDULE_NAME: $SCHEDULE_NAME 
+
+  run:
+    runs-on: windows-latest
+    if: github.event_name == 'repository_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run in production
+        run: |
+          cd bot
+          .\rcc.exe run
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: robot-output
+          path: robot/output/
+          if-no-files-found: warn

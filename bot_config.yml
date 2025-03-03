@@ -1,0 +1,8 @@
+variables:
+  VER_MAJOR: "1" # MAJOR VERSION
+  VER_MINOR: "0" # MINOR VERSION
+  PATCH: "0"
+  DESCRIPTION: "initial version"
+  SCHEDULE_NAME: "RPA\\RPA_0005-2355_WW_robotsparebinindustries"
+  SCHEDULE_SCRIPT: "cmd /c curl --request POST 'https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline?token=$TRIGGER_TOKEN&ref=main'"
+  SCHEDULE_PARAMETERS: "/sc minute /mo 5" # Run every 5 minutes
