@@ -94,7 +94,7 @@ jobs:
       
       - name: Run in dev mode
         run: |
-          cd bot
+          cd $GITHUB_WORKSPACE/bot
           .\rcc.exe run --dev
           
       - name: Upload artifacts
