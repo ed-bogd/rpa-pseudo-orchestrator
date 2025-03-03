@@ -95,6 +95,7 @@ jobs:
       - name: Run in dev mode
         run: |
           cd bot
+          chmod +x rcc
           ./rcc run --dev
 
       - name: Upload artifacts
@@ -218,7 +219,8 @@ jobs:
       - name: Run in production
         run: |
           cd bot
-          ./rcc run --dev
+          chmod +x rcc
+          ./rcc run
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
