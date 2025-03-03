@@ -3,6 +3,6 @@ variables:
   VER_MINOR: "0" # MINOR VERSION
   PATCH: "0"
   DESCRIPTION: "initial version"
-  SCHEDULE_NAME: "RPA\\RPA_0005-2355_WW_robotsparebinindustries"
-  SCHEDULE_SCRIPT: "cmd /c curl --request POST 'https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline?token=$TRIGGER_TOKEN&ref=main'"
-  SCHEDULE_PARAMETERS: "/sc minute /mo 5" # Run every 5 minutes
+  SCHEDULE_NAME: "RPA_robotsparebinindustries"
+  SCHEDULE_SCRIPT: "curl --request POST 'https://api.github.com/repos/${GITHUB_REPOSITORY}/dispatches' -H 'Authorization: Bearer ${GITHUB_TOKEN}' -H 'Content-Type: application/json' --data '{\"event_type\": \"scheduled_run\"}'"
+  SCHEDULE_PARAMETERS: "*/5 * * * *" # Run every 5 minutes

@@ -25,8 +25,18 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --max-complexity=10 --max-line-length=170 --statistics
 
-  release:
+  ManualApprove:
     needs: test
+    environment:
+      name: approvers
+    runs-on: ubuntu-latest
+    steps:
+    - name: manual approve
+      run: |
+          echo "Manually approved"
+
+  release:
+    needs: ManualApprove
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
     steps:
