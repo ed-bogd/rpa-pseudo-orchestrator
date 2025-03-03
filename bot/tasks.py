@@ -8,6 +8,7 @@ from RPA.PDF import PDF
 # Globals
 password = "thoushallnotpass"
 
+
 @task
 def robot_spare_bin_python():
     """Insert the sales data for the week and export it as a PDF"""

@@ -39,16 +39,13 @@ def log_in():
     """Fills in the login form and clicks the 'Log in' button"""
     page = browser.page()
     page.fill("#username", "maria")
-
     page.fill("#password", password)
-
     page.click("button:text('Log in')")
 
 
 def fill_and_submit_sales_form(sales_rep):
     """Fills in the sales data and click the 'Submit' button"""
     page = browser.page()
-
     page.fill("#firstname", sales_rep["First Name"])
     page.fill("#lastname", sales_rep["Last Name"])
     page.select_option("#salestarget", str(sales_rep["Sales Target"]))
@@ -83,7 +80,6 @@ def export_as_pdf():
     """Export the data to a pdf file"""
     page = browser.page()
     sales_results_html = page.locator("#sales-results").inner_html()
-
     pdf = PDF()
     pdf.html_to_pdf(sales_results_html, "output/sales_results.pdf")
 
