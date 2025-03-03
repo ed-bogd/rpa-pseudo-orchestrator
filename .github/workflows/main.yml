@@ -117,7 +117,7 @@ jobs:
           if-no-files-found: warn
 
   create_schedule:
-    needs: dev_run
+    needs: [dev_run, release]
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
