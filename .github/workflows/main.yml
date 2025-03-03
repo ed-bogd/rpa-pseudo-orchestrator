@@ -136,101 +136,101 @@ jobs:
           SCHEDULE_PARAMETERS: ${{ needs.release.outputs.SCHEDULE_PARAMETERS }}
 
   ## Manual Approval Job
-  approveSchedule:
-    needs: create_schedule
-    environment:
-      name: approvers
-    runs-on: ubuntu-latest
-    steps:
-    - name: manual approve
-      run: |
-          echo "Approved"
+  # approveSchedule:
+  #   needs: create_schedule
+  #   environment:
+  #     name: approvers
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: manual approve
+  #     run: |
+  #         echo "Approved"
 
-  delete_schedule:
-    needs: approveSchedule
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
+  # delete_schedule:
+  #   needs: approveSchedule
+  #   runs-on: self-hosted
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      - name: Delete schedule
-        shell: bash
-        run: |
-          echo "Deleting a schedule..."
-          chmod +x $GITHUB_WORKSPACE/schedule.sh
-          . $GITHUB_WORKSPACE/schedule.sh
-          delete_scheduled_task "$SCHEDULE_NAME"
-        env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
+  #     - name: Delete schedule
+  #       shell: bash
+  #       run: |
+  #         echo "Deleting a schedule..."
+  #         chmod +x $GITHUB_WORKSPACE/schedule.sh
+  #         . $GITHUB_WORKSPACE/schedule.sh
+  #         delete_scheduled_task "$SCHEDULE_NAME"
+  #       env:
+  #         SCHEDULE_NAME: $SCHEDULE_NAME 
 
-  run_schedule:
-    needs: approveSchedule
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
+  # run_schedule:
+  #   needs: approveSchedule
+  #   runs-on: self-hosted
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      - name: Run schedule
-        shell: bash
-        run: |
-          echo "Running a schedule..."
-          chmod +x $GITHUB_WORKSPACE/schedule.sh
-          . $GITHUB_WORKSPACE/schedule.sh
-          run_scheduled_task "$SCHEDULE_NAME"
-        env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
+  #     - name: Run schedule
+  #       shell: bash
+  #       run: |
+  #         echo "Running a schedule..."
+  #         chmod +x $GITHUB_WORKSPACE/schedule.sh
+  #         . $GITHUB_WORKSPACE/schedule.sh
+  #         run_scheduled_task "$SCHEDULE_NAME"
+  #       env:
+  #         SCHEDULE_NAME: $SCHEDULE_NAME 
 
-  enable_schedule:
-    needs: approveSchedule
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
+  # enable_schedule:
+  #   needs: approveSchedule
+  #   runs-on: self-hosted
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      - name: Enable schedule
-        shell: bash
-        run: |
-          echo "Enabling a schedule..."
-          chmod +x $GITHUB_WORKSPACE/schedule.sh
-          . $GITHUB_WORKSPACE/schedule.sh
-          enable_scheduled_task "$SCHEDULE_NAME"
-        env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
+  #     - name: Enable schedule
+  #       shell: bash
+  #       run: |
+  #         echo "Enabling a schedule..."
+  #         chmod +x $GITHUB_WORKSPACE/schedule.sh
+  #         . $GITHUB_WORKSPACE/schedule.sh
+  #         enable_scheduled_task "$SCHEDULE_NAME"
+  #       env:
+  #         SCHEDULE_NAME: $SCHEDULE_NAME 
 
-  disable_schedule:
-    needs: approveSchedule
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
+  # disable_schedule:
+  #   needs: approveSchedule
+  #   runs-on: self-hosted
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      - name: Disable schedule
-        shell: bash
-        run: |
-          echo "Disabling a schedule..."
-          chmod +x $GITHUB_WORKSPACE/schedule.sh
-          . $GITHUB_WORKSPACE/schedule.sh
-          disable_scheduled_task "$SCHEDULE_NAME"
-        env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
+  #     - name: Disable schedule
+  #       shell: bash
+  #       run: |
+  #         echo "Disabling a schedule..."
+  #         chmod +x $GITHUB_WORKSPACE/schedule.sh
+  #         . $GITHUB_WORKSPACE/schedule.sh
+  #         disable_scheduled_task "$SCHEDULE_NAME"
+  #       env:
+  #         SCHEDULE_NAME: $SCHEDULE_NAME 
 
-  end_schedule:
-    needs: approveSchedule
-    runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
+  # end_schedule:
+  #   needs: approveSchedule
+  #   runs-on: self-hosted
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - uses: actions/checkout@v4
       
-      - name: Stop schedule
-        shell: bash
-        run: |
-          echo "Stopping a schedule..."
-          chmod +x $GITHUB_WORKSPACE/schedule.sh
-          . $GITHUB_WORKSPACE/schedule.sh
-          # Note: Linux doesn't need explicit task ending
-          disable_scheduled_task "$SCHEDULE_NAME"
-        env:
-          SCHEDULE_NAME: $SCHEDULE_NAME 
+  #     - name: Stop schedule
+  #       shell: bash
+  #       run: |
+  #         echo "Stopping a schedule..."
+  #         chmod +x $GITHUB_WORKSPACE/schedule.sh
+  #         . $GITHUB_WORKSPACE/schedule.sh
+  #         # Note: Linux doesn't need explicit task ending
+  #         disable_scheduled_task "$SCHEDULE_NAME"
+  #       env:
+  #         SCHEDULE_NAME: $SCHEDULE_NAME 
 
   run:
     runs-on: self-hosted
