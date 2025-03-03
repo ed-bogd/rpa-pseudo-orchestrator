@@ -1,8 +1,8 @@
 variables:
-  VER_MAJOR: "1" # MAJOR VERSION
-  VER_MINOR: "0" # MINOR VERSION
+  VER_MAJOR: "1"
+  VER_MINOR: "0"
   PATCH: "0"
   DESCRIPTION: "initial version"
   SCHEDULE_NAME: "RPA_robotsparebinindustries"
   SCHEDULE_SCRIPT: "curl --request POST 'https://api.github.com/repos/${GITHUB_REPOSITORY}/dispatches' -H 'Authorization: Bearer ${GITHUB_TOKEN}' -H 'Content-Type: application/json' --data '{\"event_type\": \"scheduled_run\"}'"
-  SCHEDULE_PARAMETERS: "*/5 * * * *" # Run every 5 minutes
+  SCHEDULE_PARAMETERS: "*/5 * * * *"

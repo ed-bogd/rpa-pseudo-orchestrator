@@ -98,7 +98,7 @@ jobs:
           .\rcc.exe run --dev
           
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: robot-output
           path: robot/output/
