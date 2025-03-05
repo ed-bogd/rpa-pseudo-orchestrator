@@ -24,9 +24,29 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --max-complexity=10 --max-line-length=170 --statistics
 
+  dev_run:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run in dev mode
+        run: |
+          cd bot
+          chmod +x rcc
+          ./rcc run --dev
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bot-output
+          path: bot/output/*
+          if-no-files-found: warn
+
 ## Manual Approval Job
   approve:
-    needs: test
+    needs: dev_run
     environment:
       name: approvers
     runs-on: ubuntu-latest
@@ -71,28 +91,8 @@ jobs:
           PATCH: ${{ env.PATCH }}
           DESCRIPTION: ${{ env.DESCRIPTION }}
 
-  dev_run:
-    needs: release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run in dev mode
-        run: |
-          cd bot
-          chmod +x rcc
-          ./rcc run --dev
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: robot-output
-          path: robot/output/*
-          if-no-files-found: warn
-
   create_schedule:
-    needs: dev_run
+    needs: release
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
