@@ -26,3 +26,4 @@ RPA workforce environment is managed by RCC tool (https://sema4.ai/docs/automati
 - Business logic located inside '/bot' folder
 - Edit 'bot_config.json' file to change version and set cron job schedule (https://www.hostinger.com/tutorials/cron-job) 
 - Build logic in 'tasks.py' file (https://sema4.ai/docs/automation)
+- 'dev_tasks.py' = 'tasks.py'
