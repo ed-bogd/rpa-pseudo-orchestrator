@@ -5,7 +5,7 @@ create_scheduled_task() {
     local script_path="$2"
     local schedule="$3"
     
-    (crontab -l 2>/dev/null; echo "# $task_name \n";  echo "$schedule $script_path") | crontab -
+    (crontab -l 2>/dev/null; echo "# $task_name";  echo "$schedule $script_path") | crontab -
 }
 
 # delete_scheduled_task() {

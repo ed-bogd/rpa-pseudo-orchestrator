@@ -1,0 +1,25 @@
+# .github/workflows/main.yml
+name: Orchestrator-Run
+
+on:
+    repository_dispatch: # Equivalent to GitLab's external trigger
+
+jobs:
+      run:
+          runs-on: self-hosted
+          if: github.event_name == 'repository_dispatch'
+          steps:
+          - uses: actions/checkout@v4
+        
+          - name: Run in production
+            run: |
+              cd bot
+              chmod +x rcc
+              ./rcc run
+            
+          - name: Upload artifacts
+            uses: actions/upload-artifact@v3
+            with:
+              name: robot-output
+              path: robot/output/
+              if-no-files-found: warn
