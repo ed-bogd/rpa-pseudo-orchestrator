@@ -3,6 +3,7 @@ name: Orchestrator-Run
 
 on:
     repository_dispatch:
+    workflow_dispatch:
 
 jobs:
       run:
@@ -21,5 +22,5 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
               name: robot-output
-              path: robot/output/
+              path: robot/output/*
               if-no-files-found: warn
