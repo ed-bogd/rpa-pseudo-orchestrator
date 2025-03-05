@@ -40,10 +40,6 @@ jobs:
     needs: approve
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
-    outputs:
-      SCHEDULE_NAME: ${{ steps.set_vars.outputs.SCHEDULE_NAME }}
-      SCHEDULE_SCRIPT: ${{ steps.set_vars.outputs.SCHEDULE_SCRIPT }}
-      SCHEDULE_PARAMETERS: ${{ steps.set_vars.outputs.SCHEDULE_PARAMETERS }}
     permissions:
       contents: write
       issues: write
@@ -58,9 +54,6 @@ jobs:
           echo "VER_MINOR=$(jq -r '.VER_MINOR' bot_config.json)" >> $GITHUB_ENV
           echo "PATCH=$(jq -r '.PATCH' bot_config.json)" >> $GITHUB_ENV
           echo "DESCRIPTION=$(jq -r '.DESCRIPTION' bot_config.json)" >> $GITHUB_ENV
-          echo "SCHEDULE_NAME=$(jq -r '.SCHEDULE_NAME' bot_config.json)" >> $GITHUB_ENV
-          echo "SCHEDULE_SCRIPT=$(jq -r '.SCHEDULE_SCRIPT' bot_config.json)" >> $GITHUB_ENV
-          echo "SCHEDULE_PARAMETERS=$(jq -r '.SCHEDULE_PARAMETERS' bot_config.json)" >> $GITHUB_ENV
          
       - name: Check and create release
         run: |
@@ -78,13 +71,6 @@ jobs:
           VER_MINOR: ${{ env.VER_MINOR }}
           PATCH: ${{ env.PATCH }}
           DESCRIPTION: ${{ env.DESCRIPTION }}
-
-      - name: Set outputs
-        id: set_vars
-        run: |
-          echo "SCHEDULE_NAME=$SCHEDULE_NAME" >> $GITHUB_OUTPUT
-          echo "SCHEDULE_SCRIPT=$SCHEDULE_SCRIPT" >> $GITHUB_OUTPUT
-          echo "SCHEDULE_PARAMETERS=$SCHEDULE_PARAMETERS" >> $GITHUB_OUTPUT
 
   dev_run:
     needs: release
@@ -107,12 +93,20 @@ jobs:
           if-no-files-found: warn
 
   create_schedule:
-    needs: [dev_run, release]
+    needs: dev_run
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       
+      - name: Load version
+        run: |
+          # Parse JSON and export variables
+          cd $GITHUB_WORKSPACE
+          echo "SCHEDULE_NAME=$(jq -r '.SCHEDULE_NAME' bot_config.json)" >> $GITHUB_ENV
+          echo "SCHEDULE_SCRIPT=$(jq -r '.SCHEDULE_SCRIPT' bot_config.json)" >> $GITHUB_ENV
+          echo "SCHEDULE_PARAMETERS=$(jq -r '.SCHEDULE_PARAMETERS' bot_config.json)" >> $GITHUB_ENV
+
       - name: Create schedule
         shell: bash
         run: |
@@ -121,9 +115,9 @@ jobs:
           . $GITHUB_WORKSPACE/schedule.sh
           create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
         env:
-          SCHEDULE_NAME: ${{ needs.release.outputs.SCHEDULE_NAME }}
-          SCHEDULE_SCRIPT: ${{ needs.release.outputs.SCHEDULE_SCRIPT }}
-          SCHEDULE_PARAMETERS: ${{ needs.release.outputs.SCHEDULE_PARAMETERS }}
+          SCHEDULE_NAME: ${{ env.SCHEDULE_NAME }}
+          SCHEDULE_SCRIPT: ${{ env.SCHEDULE_SCRIPT }}
+          SCHEDULE_PARAMETERS: ${{ env.SCHEDULE_PARAMETERS }}
 
   ## Manual Approval Job
   # approveSchedule:
