@@ -113,11 +113,15 @@ jobs:
           echo "Creating a schedule..."
           chmod +x $GITHUB_WORKSPACE/schedule.sh
           . $GITHUB_WORKSPACE/schedule.sh
+          SCHEDULE_SCRIPT="curl --request POST 'https://api.github.com/repos/$GITHUB_REPOSITORY/dispatches' -H 'Authorization: Bearer $GITHUB_TOKEN' -H 'Content-Type: application/json' --data '{\"event_type\": \"scheduled_run\"}'"
           create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
         env:
           SCHEDULE_NAME: ${{ env.SCHEDULE_NAME }}
           SCHEDULE_SCRIPT: ${{ env.SCHEDULE_SCRIPT }}
           SCHEDULE_PARAMETERS: ${{ env.SCHEDULE_PARAMETERS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.event.repository.name }}
+          
 
   ## Manual Approval Job
   # approveSchedule:
