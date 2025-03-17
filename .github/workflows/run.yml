@@ -1,0 +1,25 @@
+# .github/workflows/run.yml
+name: Orchestrator-Run
+
+on:
+    repository_dispatch:
+    workflow_dispatch:
+
+jobs:
+      run:
+          runs-on: self-hosted
+          steps:
+          - uses: actions/checkout@v4
+        
+          - name: Run in production
+            run: |
+              cd bot
+              chmod +x rcc
+              ./rcc run
+            
+          - name: Upload artifacts
+            uses: actions/upload-artifact@v4
+            with:
+              name: bot-output
+              path: bot/output/*
+              if-no-files-found: warn

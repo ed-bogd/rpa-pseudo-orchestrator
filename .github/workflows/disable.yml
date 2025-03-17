@@ -1,0 +1,22 @@
+# .github/workflows/disable.yml
+name: Orchestrator-Disable
+
+on:
+    workflow_dispatch:
+
+jobs:
+    delete_schedule:
+        runs-on: self-hosted
+        if: github.event_name == 'workflow_dispatch'
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Delete schedule
+          shell: bash
+          run: |
+            echo "Deleting a schedule..."
+            chmod +x $GITHUB_WORKSPACE/schedule.sh
+            . $GITHUB_WORKSPACE/schedule.sh
+            delete_scheduled_task
+          env:
+            SCHEDULE_NAME: $SCHEDULE_NAME

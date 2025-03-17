@@ -1,0 +1,122 @@
+# .github/workflows/deploy.yml
+name: Orchestrator-Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install flake8
+        run: pip install flake8
+        
+      - name: Run flake8
+        run: |
+          echo "=== Running flake8 job === "
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --max-complexity=10 --max-line-length=170 --statistics
+
+  dev_run:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run in dev mode
+        run: |
+          cd bot
+          chmod +x rcc
+          ./rcc run --dev
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bot-output
+          path: bot/output/*
+          if-no-files-found: warn
+
+## Manual Approval Job
+  approve:
+    needs: dev_run
+    environment:
+      name: approvers
+    runs-on: ubuntu-latest
+    steps:
+    - name: manual approve
+      run: |
+          echo "Approved"
+
+  release:
+    needs: approve
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Load environment
+        run: |
+          # Parse JSON and export variables
+          echo "VER_MAJOR=$(jq -r '.VER_MAJOR' bot_config.json)" >> $GITHUB_ENV
+          echo "VER_MINOR=$(jq -r '.VER_MINOR' bot_config.json)" >> $GITHUB_ENV
+          echo "PATCH=$(jq -r '.PATCH' bot_config.json)" >> $GITHUB_ENV
+          echo "DESCRIPTION=$(jq -r '.DESCRIPTION' bot_config.json)" >> $GITHUB_ENV
+         
+      - name: Check and create release
+        run: |
+          echo "Checking release..."
+          if ! gh release view "v$VER_MAJOR.$VER_MINOR.$PATCH" &>/dev/null; then
+            echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH not found"
+            echo "Creating..."
+            gh release create "v$VER_MAJOR.$VER_MINOR.$PATCH" --notes "$DESCRIPTION" --generate-notes
+          fi
+          echo "Release v$VER_MAJOR.$VER_MINOR.$PATCH already created."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Make sure the variables are clean without comments
+          VER_MAJOR: ${{ env.VER_MAJOR }}
+          VER_MINOR: ${{ env.VER_MINOR }}
+          PATCH: ${{ env.PATCH }}
+          DESCRIPTION: ${{ env.DESCRIPTION }}
+
+  create_schedule:
+    needs: release
+    runs-on: self-hosted
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Load environment
+        run: |
+          # Parse JSON and export variables
+          cd $GITHUB_WORKSPACE
+          echo "SCHEDULE_NAME=$(jq -r '.SCHEDULE_NAME' bot_config.json)" >> $GITHUB_ENV
+          echo "SCHEDULE_PARAMETERS=$(jq -r '.SCHEDULE_PARAMETERS' bot_config.json)" >> $GITHUB_ENV
+
+      - name: Create schedule
+        shell: bash {0}
+        run: |
+          echo "Creating a schedule..."
+          chmod +x schedule.sh
+          source ./schedule.sh
+          SCHEDULE_SCRIPT="curl --request POST 'https://api.github.com/repos/$GITHUB_REPOSITORY/dispatches' -H 'Authorization: Bearer $REPO_API_KEY' -H 'Content-Type: application/json' --data '{\"event_type\": \"scheduled_run\"}'"
+          echo $SCHEDULE_SCRIPT
+          create_scheduled_task "$SCHEDULE_NAME" "$SCHEDULE_SCRIPT" "$SCHEDULE_PARAMETERS"
+        env:
+          SCHEDULE_NAME: ${{ env.SCHEDULE_NAME }}
+          SCHEDULE_PARAMETERS: ${{ env.SCHEDULE_PARAMETERS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_API_KEY: ${{ secrets.REPO_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.event.repository.name }}
