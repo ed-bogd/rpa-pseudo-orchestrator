@@ -1,0 +1,8 @@
+{
+  "VER_MAJOR": "1",
+  "VER_MINOR": "0",
+  "PATCH": "0",
+  "DESCRIPTION": "initial version",
+  "SCHEDULE_NAME": "RPA_robotsparebinindustries",
+  "SCHEDULE_PARAMETERS": "*/1 * * * *"
+}
